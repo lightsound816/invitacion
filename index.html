@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>VIP Pass | Edith Miral</title>
+  <!-- Fuentes elegantes y modernas -->
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Montserrat:wght@300;400;600;700&family=Playfair+Display:ital,wght@1,600&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background: #08070b;
+      color: #fff;
+      font-family: 'Montserrat', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    /* Fondo dinámico con resplandores */
+    .bg-lights {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      z-index: 0;
+      pointer-events: none;
+    }
+    .orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(70px);
+      opacity: 0.35;
+      animation: floatOrb 12s infinite alternate ease-in-out;
+    }
+    .orb-1 { width: 320px; height: 320px; background: #e63946; top: -50px; left: -50px; }
+    .orb-2 { width: 280px; height: 280px; background: #ff758f; bottom: -60px; right: -40px; animation-duration: 9s; }
+
+    @keyframes floatOrb {
+      0% { transform: translateY(0) scale(1); }
+      100% { transform: translateY(40px) scale(1.15); }
+    }
+
+    /* PANTALLA 1: ESCÁNER / MISTERIO */
+    #scanner-screen {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(circle at center, #15111e 0%, #060509 100%);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 24px;
+      text-align: center;
+      z-index: 100;
+      transition: opacity 0.8s ease, transform 0.8s ease;
+    }
+
+    .badge-top {
+      font-size: 0.72rem;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: #ff758f;
+      margin-bottom: 12px;
+      font-weight: 600;
+    }
+
+    .target-name {
+      font-family: 'Cinzel', serif;
+      font-size: 1.6rem;
+      color: #fff;
+      margin-bottom: 25px;
+      text-shadow: 0 0 15px rgba(255, 117, 143, 0.4);
+    }
+
+    /* Botón de huella interactivo */
+    .scanner-box {
+      position: relative;
+      width: 130px;
+      height: 130px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.03);
+      border: 2px dashed rgba(255, 117, 143, 0.5);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      user-select: none;
+      box-shadow: 0 0 30px rgba(230, 57, 70, 0.15);
+      transition: transform 0.2s;
+    }
+
+    .scanner-box:active {
+      transform: scale(0.95);
+    }
+
+    .fingerprint-icon {
+      font-size: 3.5rem;
+      filter: drop-shadow(0 0 8px #ff4d6d);
+      animation: pulseGlow 1.5s infinite alternate;
+    }
+
+    @keyframes pulseGlow {
+      from { opacity: 0.6; filter: drop-shadow(0 0 4px #ff4d6d); }
+      to { opacity: 1; filter: drop-shadow(0 0 18px #ff758f); }
+    }
+
+    /* Barra de progreso de escaneo */
+    .progress-track {
+      width: 220px;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      margin-top: 25px;
+      overflow: hidden;
+    }
+    .progress-bar {
+      width: 0%;
+      height: 100%;
+      background: linear-gradient(90deg, #ff4d6d, #ffd166);
+      transition: width 0.1s linear;
+    }
+
+    .scan-status {
+      font-size: 0.85rem;
+      color: #9d9aa8;
+      margin-top: 14px;
+      font-style: italic;
+    }
+
+    /* PANTALLA 2: INVITACIÓN PRINCIPAL */
+    #invitation-card {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+      max-width: 420px;
+      padding: 20px;
+      opacity: 0;
+      transform: translateY(30px);
+      transition: all 1s ease;
+      display: none;
+    }
+
+    .glass-card {
+      background: rgba(18, 15, 24, 0.75);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 28px;
+      padding: 30px 22px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7), 0 0 30px rgba(255, 77, 109, 0.1);
+      text-align: center;
+    }
+
+    .cursi-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 2.1rem;
+      color: #ffe5ec;
+      line-height: 1.15;
+      margin-bottom: 6px;
+    }
+
+    .cursi-sub {
+      font-size: 0.82rem;
+      letter-spacing: 2px;
+      color: #ff002f;
+      text-transform: uppercase;
+      font-weight: 700;
+      margin-bottom: 20px;
+    }
+
+    .intro-text {
+      font-size: 0.95rem;
+      line-height: 1.6;
+      color: #cac5d8;
+      margin-bottom: 24px;
+    }
+
+    /* Bloques de Información */
+    .info-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 24px;
+      text-align: left;
+    }
+
+    .info-card {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 16px;
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .info-icon {
+      font-size: 1.6rem;
+      background: rgba(255, 117, 143, 0.12);
+      padding: 10px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .info-details h4 {
+      font-size: 0.85rem;
+      color: #ff758f;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 2px;
+    }
+
+    .info-details p {
+      font-size: 0.92rem;
+      color: #fff;
+      font-weight: 600;
+    }
+
+    .maps-btn {
+      display: inline-block;
+      margin-top: 6px;
+      font-size: 0.78rem;
+      color: #ffd166;
+      text-decoration: underline;
+      font-weight: 600;
+    }
+
+    /* SECCIÓN DE LA CENA (INTERACTIVA) */
+    .food-section {
+      background: rgba(0, 0, 0, 0.35);
+      border-radius: 20px;
+      padding: 18px 16px;
+      margin-bottom: 24px;
+      text-align: left;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .food-section h3 {
+      font-size: 1rem;
+      color: #fff;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .food-section p.hint {
+      font-size: 0.78rem;
+      color: #9d9aa8;
+      margin-bottom: 14px;
+    }
+
+    .food-options {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .food-label {
+      display: flex;
+      align-items: center;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1.5px solid transparent;
+      padding: 12px 14px;
+      border-radius: 12px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: all 0.2s;
+    }
+
+    .food-label input[type="radio"] {
+      margin-right: 12px;
+      accent-color: #ff4d6d;
+      transform: scale(1.2);
+    }
+
+    .food-label.active {
+      border-color: #ff4d6d;
+      background: rgba(255, 77, 109, 0.15);
+    }
+
+    #custom-food-box {
+      margin-top: 10px;
+      display: none;
+      animation: fadeIn 0.3s ease;
+    }
+
+    #custom-food-input {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid #ff4d6d;
+      color: #fff;
+      padding: 12px;
+      border-radius: 10px;
+      font-size: 0.9rem;
+      font-family: inherit;
+      outline: none;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-5px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* BOTÓN DE CONFIRMACIÓN */
+    .btn-submit {
+      width: 100%;
+      background: linear-gradient(135deg, #ff4d6d, #c9184a);
+      color: white;
+      border: none;
+      padding: 16px;
+      border-radius: 16px;
+      font-size: 1.05rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      box-shadow: 0 10px 25px rgba(255, 77, 109, 0.4);
+      transition: transform 0.2s;
+    }
+
+    .btn-submit:active {
+      transform: scale(0.97);
+    }
+
+    /* ÉXITO / CONFIRMADO */
+    #success-screen {
+      display: none;
+      text-align: center;
+      padding: 20px 0;
+      animation: fadeIn 0.5s ease;
+    }
+
+    .success-heart {
+      font-size: 4rem;
+      animation: bounce 1.2s infinite;
+      margin-bottom: 12px;
+    }
+
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="bg-lights">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+  </div>
+
+  <!-- PANTALLA 1: ESCANEO Y MISTERIO -->
+  <section id="scanner-screen">
+    <div class="badge-top">🔒 PAGINA SECRETA</div>
+    <div class="target-name">Invitación Exclusiva para:<br><span style="color:#ff002f;">Edith Miral</span></div>
+    
+    <div class="scanner-box" id="scan-trigger">
+      <div class="fingerprint-icon">✨</div>
+    </div>
+
+    <div class="progress-track">
+      <div class="progress-bar" id="scan-progress"></div>
+    </div>
+
+    <p class="scan-status" id="scan-label">Mantén presionado para verificar si te sabes la cancion o no Zendaya</p>
+  </section>
+
+  <!-- PANTALLA 2: CONTENIDO DE LA INVITACIÓN -->
+  <main id="invitation-card">
+    <div class="glass-card">
+      
+      <!-- Vista del Formulario -->
+      <div id="card-content">
+        <div class="cursi-sub">Sea usted invitada a la gran...</div>
+        <h1 class="cursi-title">Pijamada en mi Pen Jaus</h1>
+        <p class="intro-text">
+          Señorita <strong>Edith Miral</strong>, su presencia ha sido solicitada formalmente para una velada sin igual. Prometo cero estrés, muchas risas y apapachos.
+        </p>
+
+        <!-- Detalles del Evento -->
+        <div class="info-grid">
+          
+          <div class="info-card">
+            <div class="info-icon">📍</div>
+            <div class="info-details">
+              <h4>El Destino</h4>
+              <p>Mi Pen Jaus 🏰</p>
+              <a href="https://maps.app.goo.gl/6AUT6QibpBj11gBD6" target="_blank" class="maps-btn">
+                Ver coordenadas en Google Maps ↗
+              </a>
+            </div>
+          </div>
+
+          <div class="info-card">
+            <div class="info-icon">🕚</div>
+            <div class="info-details">
+              <h4>La Cita</h4>
+              <p>11:00 PM en punto</p>
+            </div>
+          </div>
+
+          <div class="info-card">
+            <div class="info-icon">🎬</div>
+            <div class="info-details">
+              <h4>Las Actividades</h4>
+              <p>Unas pelis 🍿 y/o si se presta... ¡un buen bailongo! 💃🕺 o ya de plano dormir nomas dormir</p>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Selección de Comida Interactiva -->
+        <div class="food-section">
+          <h3>🍽️ Menú</h3>
+          <p class="hint">Se necesita saber qué se le antoja a la reina:</p>
+
+          <div class="food-options">
+            <label class="food-label">
+              <input type="radio" name="dinner" value="Pizza" onchange="handleFoodChange(this)" />
+              🍕 Pizza 
+            </label>
+
+            <label class="food-label">
+              <input type="radio" name="dinner" value="Sushi" onchange="handleFoodChange(this)" />
+              🍣 Sushi
+            </label>
+
+            <label class="food-label">
+              <input type="radio" name="dinner" value="Burros Percherones" onchange="handleFoodChange(this)" />
+              🌯 Burros Percherones 
+            </label>
+
+            <label class="food-label">
+              <input type="radio" name="dinner" value="Otro" onchange="handleFoodChange(this)" />
+              ✨ Ninguna de las anteriores / Otra cosa...
+            </label>
+          </div>
+
+          <div id="custom-food-box">
+            <input type="text" id="custom-food-input" placeholder="Escribe aquí exactamente qué quieres cenar..." />
+          </div>
+        </div>
+
+        <!-- Botón para Guardar en Base de Datos -->
+        <button class="btn-submit" id="btn-submit" onclick="submitRSVP()">
+          ¡Confirmo mi asistencia al Pen Jaus! 🤍
+        </button>
+      </div>
+
+      <!-- Pantalla de Éxito al Confirmar -->
+      <div id="success-screen">
+        <div class="success-heart">💖</div>
+        <h2 style="font-family:'Playfair Display', serif; font-size: 1.8rem; margin-bottom: 8px;">¡Reserva Guardada con Éxito!</h2>
+        <p style="color:#d4d0e0; font-size: 0.95rem; margin-bottom: 20px;" id="summary-text">
+          Tu elección ha sido registrada directamente en la cocina del Pen Jaus.
+        </p>
+        <button class="btn-submit" style="background:#25D366; box-shadow: 0 10px 25px rgba(37,211,102,0.4);" onclick="sendWhatsAppBackup()">
+          Avisarle por WhatsApp al anfitrión 📲
+        </button>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Melodía de Fondo (Lofi Romántico/Acogedor) -->
+  <audio id="bg-music" loop preload="auto">
+    <source src="https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3?filename=lofi-study-112191.mp3" type="audio/mpeg">
+  </audio>
+
+  <script>
+    // ==========================================
+    // CONFIGURACIÓN DE BASE DE DATOS
+    // ==========================================
+    // TIP: Puedes crear una API gratis en https://sheetdb.io pegando el link de un Google Sheet.
+    // Solo sustituye la URL de abajo por tu endpoint de SheetDB.
+    const SHEETDB_URL = "https://sheetdb.io/api/v1/0hntifvydadmw"; 
+    // Pon tu número de WhatsApp aquí con código de país (ej. 521XXXXXXXXXX para México)
+    const TU_WHATSAPP = "526371027887"; 
+
+    let chosenFood = "";
+
+    // 1. Manejo del Escáner Misterioso
+    const scanTrigger = document.getElementById('scan-trigger');
+    const progressBar = document.getElementById('scan-progress');
+    const scanLabel = document.getElementById('scan-label');
+    let scanTimer = null;
+    let progress = 0;
+
+    function startScan() {
+      // Vibración de escaneo táctil
+      if (navigator.vibrate) navigator.vibrate([40]);
+      scanLabel.innerText = "Verificando ADN de reina...";
+      
+      scanTimer = setInterval(() => {
+        progress += 4;
+        progressBar.style.width = progress + '%';
+        
+        if (progress >= 100) {
+          clearInterval(scanTimer);
+          unlockExperience();
+        }
+      }, 50);
+    }
+
+    function cancelScan() {
+      if (progress < 100) {
+        clearInterval(scanTimer);
+        progress = 0;
+        progressBar.style.width = '0%';
+        scanLabel.innerText = "Mantén presionado para autenticar hermosura";
+      }
+    }
+
+    // Eventos móviles y mouse para presionar y mantener
+    scanTrigger.addEventListener('touchstart', (e) => { e.preventDefault(); startScan(); });
+    scanTrigger.addEventListener('touchend', cancelScan);
+    scanTrigger.addEventListener('mousedown', startScan);
+    scanTrigger.addEventListener('mouseup', cancelScan);
+    scanTrigger.addEventListener('mouseleave', cancelScan);
+
+    function unlockExperience() {
+      if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+      
+      // Iniciar Música
+      const music = document.getElementById('bg-music');
+      music.volume = 0.5;
+      music.play().catch(e => console.log("Audio play error", e));
+
+      // Lluvia de confeti/corazones
+      confetti({
+        particleCount: 80,
+        spread: 70,
+        origin: { y: 0.6 },
+        colors: ['#ff4d6d', '#ffd166', '#ffffff']
+      });
+
+      // Animación de transición entre pantallas
+      const scanner = document.getElementById('scanner-screen');
+      const card = document.getElementById('invitation-card');
+
+      scanner.style.opacity = '0';
+      scanner.style.transform = 'scale(1.1)';
+      setTimeout(() => {
+        scanner.style.display = 'none';
+        card.style.display = 'block';
+        setTimeout(() => {
+          card.style.opacity = '1';
+          card.style.transform = 'translateY(0)';
+        }, 50);
+      }, 700);
+    }
+
+    // 2. Control de Opciones de Cena
+    function handleFoodChange(radio) {
+      document.querySelectorAll('.food-label').forEach(lbl => lbl.classList.remove('active'));
+      radio.closest('.food-label').classList.add('active');
+
+      const customBox = document.getElementById('custom-food-box');
+      if (radio.value === 'Otro') {
+        customBox.style.display = 'block';
+        document.getElementById('custom-food-input').focus();
+      } else {
+        customBox.style.display = 'none';
+      }
+    }
+
+    // 3. Envío y Registro en Base de Datos
+    async function submitRSVP() {
+      const selectedRadio = document.querySelector('input[name="dinner"]:checked');
+      
+      if (!selectedRadio) {
+        alert("¡Oye! Tienes que elegir qué vamos a cenar primero 😋");
+        return;
+      }
+
+      if (selectedRadio.value === 'Otro') {
+        const customText = document.getElementById('custom-food-input').value.trim();
+        if (!customText) {
+          alert("Escribe qué se te antoja cenar para que la chef lo consiga ✍️");
+          return;
+        }
+        chosenFood = `Otro: ${customText}`;
+      } else {
+        chosenFood = selectedRadio.value;
+      }
+
+      const submitBtn = document.getElementById('btn-submit');
+      submitBtn.innerText = "Guardando en la base de datos...";
+      submitBtn.disabled = true;
+
+      const payload = {
+        data: [
+          {
+            Invitada: "Edith Miral",
+            Cena_Elegida: chosenFood,
+            Fecha_Registro: new Date().toLocaleString()
+          }
+        ]
+      };
+
+      // Si configuraste SheetDB, guardamos en Google Sheets
+      if (SHEETDB_URL && !SHEETDB_URL.includes("https://sheetdb.io/api/v1/0hntifvydadmw")) {
+        try {
+          await fetch(SHEETDB_URL, {
+            method: 'POST',
+            headers: {
+              'Accept': 'application/json',
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
+          });
+        } catch (error) {
+          console.error("Error al guardar en SheetDB:", error);
+        }
+      }
+
+      // Guardar también en LocalStorage del navegador
+      localStorage.setItem('cena_edith', chosenFood);
+
+      // Mostrar animación de celebración final
+      confetti({
+        particleCount: 150,
+        spread: 100,
+        origin: { y: 0.5 }
+      });
+
+      document.getElementById('card-content').style.display = 'none';
+      document.getElementById('summary-text').innerHTML = `Tu menú elegido: <strong style="color:#ff758f;">${chosenFood}</strong>.<br><br>Prepárate para las 11:00 PM en el Pen Jaus. ✨`;
+      document.getElementById('success-screen').style.display = 'block';
+    }
+
+    // Respaldo directo por WhatsApp
+    function sendWhatsAppBackup() {
+      const mensaje = encodeURIComponent(
+        `¡Hola! Ya abrí la invitación al Pen Jaus. Quedamos a las 11:00 PM y para cenar elegí: *${chosenFood}*. ¡Lista para las pelis y el bailongo!`
+      );
+      window.open(`https://wa.me/${TU_WHATSAPP}?text=${mensaje}`, '_blank');
+    }
+  </script>
+</body>
+</html>
